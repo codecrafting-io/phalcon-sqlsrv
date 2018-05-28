@@ -1,0 +1,40 @@
+{
+    "name": "codecrafting-net/phalcon-sqlsrv",
+    "description": "SQL Server implementation for Phalcon Framework",
+    "keywords": ["framework", "phalcon", "sqlsrv"],
+    "authors": [
+        {
+            "name": "Lucas Marotta",
+            "email": "lucas.marotta@codecrafting.net"
+        },
+        {
+            "name": "ToNict",
+            "email": "shinobi.wk@hotmail.com"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/codecrafting-net/phalcon-sqlsrv/issues",
+        "source": "https://github.com/codecrafting-net/phalcon-sqlsrv",
+        "forum": "https://forum.phalconphp.com/",
+        "docs": "https://docs.phalconphp.com/",
+        "irc": "irc://irc.freenode.org/phalconphp",
+        "rss": "https://blog.phalconphp.com/rss",
+        "email": "contact@codecrafting.net"
+    },
+    "require": {
+        "php": ">=7.0",
+        "ext-phalcon": ">=3.0.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Phalcon\\Db\\": "phalcon/db/",
+            "Phalcon\\Logger\\": "phalcon/logger/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phalcon\\Db\\": "phalcon/db/",
+            "Phalcon\\Logger\\": "phalcon/logger/"
+        }
+    }
+}

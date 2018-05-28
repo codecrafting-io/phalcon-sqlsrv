@@ -1,19 +1,9 @@
 <?php
-
 namespace Phalcon\Db\Result;
 
-/**
- * Phalcon\Db\Result\PdoSqlsrv
- * Encapsulates the resultset internals
- * <code>
- * $result = $connection->query("SELECT * FROM robots ORDER BY name");
- * $result->setFetchMode(Phalcon\Db::FETCH_NUM);
- * while ($robot = $result->fetchArray()) {
- * print_r($robot);
- * }
- * </code>.
- */
-class PdoSqlsrv extends Pdo
+use Pdo as ResultPdo;
+
+class PdoSqlsrv extends ResultPdo
 {
     /**
      * Gets number of rows returned by a resultset
@@ -29,14 +19,11 @@ class PdoSqlsrv extends Pdo
         $rowCount = $this->_rowCount;
         if ($rowCount === false) {
             $rowCount = $this->_pdoStatement->rowCount();
-
             if ($rowCount === false) {
-                parent::numRows();
+                $rowCount = -1;
             }
-
             $this->_rowCount = $rowCount;
         }
-
         return $rowCount;
     }
 }
