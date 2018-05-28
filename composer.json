@@ -27,14 +27,12 @@
     },
     "autoload": {
         "psr-4": {
-            "Phalcon\\Db\\": "phalcon/db/",
-            "Phalcon\\Logger\\": "phalcon/logger/"
+            "Phalcon\\Db\\": "phalcon/db/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Phalcon\\Db\\": "phalcon/db/",
-            "Phalcon\\Logger\\": "phalcon/logger/"
+            "Phalcon\\Db\\": "phalcon/db/"
         }
     }
 }
