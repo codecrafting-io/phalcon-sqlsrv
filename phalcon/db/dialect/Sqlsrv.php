@@ -2,13 +2,14 @@
 namespace Phalcon\Db\Dialect;
 
 use Phalcon\Db\Column;
+use Phalcon\Db\Dialect;
 use Phalcon\Db\Exception;
 
 class Sqlsrv extends Dialect
 {
-    const MIN_DB_VERSION = "10.0.2573";
+    const MIN_DB_VERSION = "11.0.2100";
 
-    //SQL Server minimal version support: 10.0.2573 - 2008
+    //SQL Server minimal version support: 11.0.2100 - 2012
     private static $dbVersion = self::MIN_DB_VERSION;
 
     /**
@@ -957,10 +958,12 @@ class Sqlsrv extends Dialect
      */
     public static function setDbVersion(String $dbVersion)
     {
-        if(version_compare(self::$dbVersion, self::MIN_DB_VERSION) < 0) {
-            throw new Exception("This Phalcon SQL Server driver requires a minimal version ".self::$dbVersion." of this RDBMS");
-        } else {
-            self::$dbVersion = $dbVersion;
+        if($dbVersion) {
+            if(version_compare($dbVersion, self::MIN_DB_VERSION) < 0) {
+                throw new Exception("This Phalcon SQL Server driver requires a minimal version ".self::MIN_DB_VERSION." of this RDBMS");
+            } else {
+                self::$dbVersion = $dbVersion;
+            }
         }
     }
 }

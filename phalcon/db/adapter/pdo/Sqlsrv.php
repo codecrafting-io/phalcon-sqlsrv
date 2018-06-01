@@ -1,22 +1,51 @@
 <?php
 namespace Phalcon\Db\Adapter\Pdo;
 
-use Pdo as PdoAdapter;
 use Phalcon\Db\Column;
 use Phalcon\Db\Exception;
-use Phalcon\Db\Result\PdoSqlsrv as SqlsrvResult;
+use Phalcon\Db\Adapter\Pdo as PdoAdapter;
 use Phalcon\Db\Dialect\Sqlsrv as SqlsrvDialect;
+use Phalcon\Db\Result\PdoSqlsrv as SqlsrvResult;
 
 class Sqlsrv extends PdoAdapter
 {
+    /**
+     * The PDO connection type
+     *
+     * @var string
+     */
     protected $_type = 'sqlsrv';
+
+    /**
+     * The PDOAdapter Dialect class name
+     *
+     * @var string
+     */
     protected $_dialectType = 'Sqlsrv';
-    protected $cursorOpt = [];
+
+    /**
+     * THe dsn connection settings
+     *
+     * @var string
+     */
+    protected $dsn = '';
+
+    /**
+     * The default statement cursors options
+     *
+     * @var array
+     */
+    protected $cursor = [];
+
+    /**
+     * The PDO connection default options.
+     *
+     * @var array
+     */
     protected $options = [
+        \PDO::ATTR_CASE => \PDO::CASE_NATURAL,
         \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-        \PDO::ATTR_ORACLE_NULLS => \PDO::NULL_NATURAL, //better performance
-        \PDO::ATTR_STRINGIFY_FETCHES => false, //better performance
-        \PDO::SQLSRV_ATTR_FETCHES_NUMERIC_TYPE => true //better performance
+        \PDO::ATTR_ORACLE_NULLS => \PDO::NULL_NATURAL
     ];
 
     /**
@@ -55,15 +84,13 @@ class Sqlsrv extends PdoAdapter
 
         /**
          * Check if the developer has defined custom options or create one from scratch
+         * ERRMODE_EXCEPTION is requried
          */
         if(isset($descriptor['options'])) {
             $options = $descriptor['options'] + $this->options;
             unset($descriptor['options']);
-        } else {
-            $options = $this->options;
         }
-        $options[\PDO::ATTR_ERRMODE] = \PDO::ERRMODE_EXCEPTION;
-        $this->options = $options;
+        $this->options[\PDO::ATTR_ERRMODE] = \PDO::ERRMODE_EXCEPTION;
 
         /**
          * Check if the connection must be persistent
@@ -95,48 +122,109 @@ class Sqlsrv extends PdoAdapter
          */
         if(isset($descriptor['cursor'])) {
             if($descriptor['cursor']) {
-                $this->cursorOpt = [\PDO::ATTR_CURSOR => \PDO::CURSOR_SCROLL];
+                $this->cursor = [\PDO::ATTR_CURSOR => \PDO::CURSOR_SCROLL];
                 if(is_string($descriptor['cursor'])) {
-                    $this->cursorOpt[\PDO::SQLSRV_ATTR_CURSOR_SCROLL_TYPE] = constant('\PDO::' . $descriptor['cursor']);
+                    $this->cursor[\PDO::SQLSRV_ATTR_CURSOR_SCROLL_TYPE] = constant('\PDO::' . $descriptor['cursor']);
                 }
             }
             unset($descriptor['cursor']);
         }
 
         /**
-         * Check if the user has defined a custom dsn
-         */
-         if(isset($descriptor['dsn'])) {
-            $dsnAttributes = $descriptor['dsn'];
-         }  else {
-            if(!isset($descriptor['MultipleActiveResultSets'])) {
-                $descriptor['MultipleActiveResultSets'] = 'false';
-            }
-            foreach ($descriptor as $key => $value) {
-                if($key == 'dbname') {
-                    $dsnAttributes[] = 'database' . '=' . $value;
-                } elseif($key == 'host') {
-                    $dsnAttributes[] = 'server' . '=' . $value;
-                } else {
-                    $dsnAttributes[] = $key . '=' . $value;
-                }
-            }
-            $dsnAttributes = implode(';', $dsnAttributes);
-         }
-
-        /**
          * Create the connection using PDO
          */
-         $dsn = $this->_type . ':' . $dsnAttributes;
-         $this->_pdo = new \PDO($dsn, $username, $password, $options);
-
-        /**
-         * Set sql version number for better compatibility
-         */
-         if(!empty($this->_pdo)) {
-            SqlsrvDialect::setDbVersion($this->_pdo->getAttribute(\PDO::ATTR_SERVER_VERSION));
-         }
+         $this->_pdo = new \PDO($this->buildDsn($descriptor), $username, $password, $options);
+         $this->_setSqlVersionNumber();
          return true;
+    }
+
+    /**
+     * Undocumented function
+     *
+     * @param [type] $config
+     * @return void
+     */
+    public function buildDsn($config)
+    {
+        if(isset($config['dsn'])) {
+            $this->dsn = $config['dsn'];
+            return $config['dsn'];
+        } else {
+            $arguments = ['Server' => $this->buildHostString($config, ',')];
+            if (isset($config['driver'])) {
+                $arguments['Driver'] = $config['driver'];
+            }
+            if (isset($config['dbname'])) {
+                $arguments['Database'] = $config['dbname'];
+            }
+            if (isset($config['intent'])) {
+                $arguments['ApplicationIntent'] = $config['intent'];
+            }
+            if (isset($config['pooling']) && $config['pooling'] === false) {
+                $arguments['ConnectionPooling'] = (boolval($config['pooling'])) ? '1' : '0';
+            }
+            if (isset($config['appname'])) {
+                $arguments['APP'] = $config['appname'];
+            }
+            if (isset($config['useADAuth']) && $config['useADAuth'] === true) {
+                $arguments['Authentication'] = 'ActiveDirectoryPassword';
+            }
+            if (isset($config['encrypt'])) {
+                $arguments['Encrypt'] = $config['encrypt'];
+            }
+            if (isset($config['connectionRetryCount'])) {
+                $arguments['ConnectRetryCount'] = $config['connectionRetryCount'];
+            }
+            if (isset($config['connectionRetryInterval'])) {
+                $arguments['ConnectRetryInterval'] = $config['connectionRetryInterval'];
+            }
+            if (isset($config['failover'])) {
+                $arguments['Failover_Partner'] = $config['failover'];
+            }
+            if (isset($config['timeout'])) {
+                $arguments['LoginTimeout'] = strval($config['timeout']);
+            }
+            if (isset($config['trustServerCertificate'])) {
+                $arguments['TrustServerCertificate'] = (boolval($config['trustServerCertificate'])) ? '1' : '0';
+            }
+            if (isset($config['mars'])) {
+                $arguments['MultipleActiveResultSets'] = (boolval($config['mars'])) ? 'true' : 'false';
+            }
+            if (isset($config['quoteIdentifier'])) {
+                $arguments['QuotedId'] = (boolval($config['quoteIdentifier'])) ? '1' : '0';
+            }
+            if (isset($config['trace'])) {
+                $arguments['TraceOn'] = (boolval($config['trace'])) ? '1' : '0';
+            }
+            $this->dsn = $this->buildConnectionString($arguments);
+            return  $this->dsn;
+        }
+    }
+
+    public function getDsn()
+    {
+        return $this->dsn;
+    }
+
+    /**
+     * Set query statement option cursors
+     *
+     * @param array $cursor
+     * @return void
+     */
+    public function setCursor(array $cursor)
+    {
+        $this->cursor = $cursor;
+    }
+
+    /**
+     * Get query statement option cursors
+     *
+     * @return array
+     */
+    public function getCursor()
+    {
+        return $this->cursor;
     }
 
     /**
@@ -171,7 +259,7 @@ class Sqlsrv extends PdoAdapter
          * In order to SQL Server return numRows cursors must be used
          */
         $pdo = $this->_pdo;
-        $cursorOpt = $this->cursorOpt;
+        $cursorOpt = $this->cursor;
         if (strpos($sqlStatement, 'exec') !== false) {
             $cursorOpt = [\PDO::ATTR_CURSOR => \PDO::CURSOR_FWDONLY];
             $sqlStatement = 'SET NOCOUNT ON; ' . $sqlStatement;
@@ -205,7 +293,7 @@ class Sqlsrv extends PdoAdapter
 		if(is_object($statement)) {
 			if(is_object($eventsManager)) {
 				$eventsManager->fire('db:afterQuery', $this);
-			}
+            }
             return new SqlsrvResult($this, $statement, $sqlStatement, $bindParams, $bindTypes);
         }
 		return $statement;
@@ -506,5 +594,50 @@ class Sqlsrv extends PdoAdapter
             }
         }
         return $referenceObjects;
+    }
+
+    /**
+     * Build a host string from the given configuration.
+     *
+     * @param  array  $config
+     * @param  string  $separator
+     * @return string
+     */
+    protected function buildHostString(array $config, $separator)
+    {
+        if (isset($config['port']) && ! empty($config['port'])) {
+            return $config['host'].$separator.$config['port'];
+        } else {
+            return $config['host'];
+        }
+    }
+
+    /**
+     * Build a connection string from the given arguments.
+     *
+     * @param  string  $driver
+     * @param  array  $arguments
+     * @return string
+     */
+    protected function buildConnectionString(array $arguments)
+    {
+        if($this->_type == 'OdbcSqlsrv' && !isset($arguments['driver'])) {
+            throw new \Phalcon\Db\Exception("ODBC connection dsn must have a driver attribute");
+        }
+        return $this->_type.':'.implode(';', array_map(function ($key) use ($arguments) {
+            return sprintf('%s=%s', $key, $arguments[$key]);
+        }, array_keys($arguments)));
+    }
+
+    /**
+     * Set SQL Server Version Number for dialect better compatibility
+     *
+     * @return  null|string
+     */
+    protected function _setSqlVersionNumber()
+    {
+        if($this->_pdo) {
+            SqlsrvDialect::setDbVersion($this->_pdo->getAttribute(\PDO::ATTR_SERVER_VERSION));
+        }
     }
 }
