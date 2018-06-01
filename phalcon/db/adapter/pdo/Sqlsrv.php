@@ -122,9 +122,15 @@ class Sqlsrv extends PdoAdapter
          */
         if(isset($descriptor['cursor'])) {
             if($descriptor['cursor']) {
-                $this->cursor = [\PDO::ATTR_CURSOR => \PDO::CURSOR_SCROLL];
                 if(is_string($descriptor['cursor'])) {
-                    $this->cursor[\PDO::SQLSRV_ATTR_CURSOR_SCROLL_TYPE] = constant('\PDO::' . $descriptor['cursor']);
+                    $this->cursor = [
+                        \PDO::ATTR_CURSOR => \PDO::CURSOR_SCROLL,
+                        \PDO::SQLSRV_ATTR_CURSOR_SCROLL_TYPE => constant('\PDO::' . $descriptor['cursor'])
+                    ];
+                } elseif(is_bool($descriptor['cursor'])) {
+                    $this->cursor = [\PDO::ATTR_CURSOR => \PDO::CURSOR_SCROLL];
+                } else {
+                    $this->cursor = $descriptor['cursor'];
                 }
             }
             unset($descriptor['cursor']);
