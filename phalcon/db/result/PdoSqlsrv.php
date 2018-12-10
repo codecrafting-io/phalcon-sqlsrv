@@ -37,7 +37,7 @@ class PdoSqlsrv extends ResultPdo
                     }
                     if(preg_match("/^SELECT\\s+(.*)/i", $sqlStatement, $matches)) {
                         $result = $connection->query(
-                            "SELECT COUNT(*) \"numrows\" FROM (SELECT " . $matches[1] . ") as temp_table",
+                            'SELECT COUNT(*) [numrows] FROM (SELECT ' . $matches[1] . ') as temp_table',
                             $this->_bindParams,
                             $this->_bindTypes
                         );
@@ -46,8 +46,8 @@ class PdoSqlsrv extends ResultPdo
                             if(is_object($row)) {
                                 $rowCount = $row->numrows;
                             } else {
-                                if(isset($row["numrows"]))
-                                    $rowCount = $row["numrows"];
+                                if(isset($row['numrows']))
+                                    $rowCount = $row['numrows'];
                                 else
                                     $rowCount = $row[0];
                             }

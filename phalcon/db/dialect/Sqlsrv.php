@@ -296,7 +296,7 @@ class Sqlsrv extends Dialect
         }
 
         if ($column->isAutoIncrement()) {
-            $sql .= ' IDENTITY(0,1)';
+            $sql .= ' IDENTITY(1,1)';
         }
 
         /* SQL Server does not support this
@@ -337,7 +337,7 @@ class Sqlsrv extends Dialect
             $sql .= ' NOT NULL';
         }
         if ($column->isAutoIncrement()) {
-            $sql .= ' IDENTITY(0,1)';
+            $sql .= ' IDENTITY(1,1)';
         }
 
         return $sql;
@@ -513,7 +513,7 @@ class Sqlsrv extends Dialect
              * Add an AUTO_INCREMENT clause
              */
             if ($column->isAutoIncrement()) {
-                $columnLine .= ' IDENTITY(0,1)';
+                $columnLine .= ' IDENTITY(1,1)';
             }
             /*
              * Mark the column as primary key

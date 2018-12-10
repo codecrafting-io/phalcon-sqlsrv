@@ -93,16 +93,6 @@ class Sqlsrv extends PdoAdapter
         $this->options[\PDO::ATTR_ERRMODE] = \PDO::ERRMODE_EXCEPTION;
 
         /**
-         * Check if the connection must be persistent
-         */
-        if(isset($descriptor['persistent'])) {
-            if($persistent = $descriptor['persistent']) {
-                $options[\PDO::ATTR_PERSISTENT] = true;
-            }
-            unset($descriptor['persistent']);
-        }
-
-        /**
          * Remove the dialectClass from the descriptor if any
          */
         if(isset($descriptor['dialectClass'])) {
@@ -196,8 +186,8 @@ class Sqlsrv extends PdoAdapter
             if (isset($config['mars'])) {
                 $arguments['MultipleActiveResultSets'] = (boolval($config['mars'])) ? 'true' : 'false';
             }
-            if (isset($config['quoteIdentifier'])) {
-                $arguments['QuotedId'] = (boolval($config['quoteIdentifier'])) ? '1' : '0';
+            if (isset($config['quotedIdentifier'])) {
+                $arguments['QuotedId'] = (boolval($config['quotedIdentifier'])) ? '1' : '0';
             }
             if (isset($config['trace'])) {
                 $arguments['TraceOn'] = (boolval($config['trace'])) ? '1' : '0';
@@ -258,13 +248,12 @@ class Sqlsrv extends PdoAdapter
      */
     public function query($sqlStatement, $bindParams = null, $bindTypes = null)
     {
-        $sqlStatement = str_replace('"', '', $sqlStatement);
+        $sqlStatement = str_replace('rowcount', '[rowcount]', str_replace('"', '', $sqlStatement));
         $eventsManager = $this->_eventsManager;
 
         /**
          * In order to SQL Server return numRows cursors must be used
          */
-        $pdo = $this->_pdo;
         $cursorOpt = $this->cursor;
         if (strpos($sqlStatement, 'exec') !== false) {
             $cursorOpt = [\PDO::ATTR_CURSOR => \PDO::CURSOR_FWDONLY];
@@ -283,20 +272,25 @@ class Sqlsrv extends PdoAdapter
             }
         }
 
+        $pdo = $this->_pdo;
+        $params = [];
+        $types = [];
         if(is_array($bindParams)) {
-            $statement = $pdo->prepare($sqlStatement, $cursorOpt);
-            if(is_object($statement)) {
-                $statement = $this->executePrepared($statement, $bindParams, $bindTypes);
-            }
-        } else {
-            $statement = $pdo->prepare($sqlStatement, $cursorOpt);
-            $statement->execute();
+            $params = $bindParams;
+            $types = $bindTypes;
         }
 
-		/**
+        $statement = $pdo->prepare($sqlStatement, $cursorOpt);
+        if(is_object($statement)) {
+            $statement = $this->executePrepared($statement, $params, $types);
+        } else {
+            throw new Exception('Cannot prepare statement');
+        }
+
+ 		/**
 		 * Execute the afterQuery event if an EventsManager is available
 		 */
-		if(is_object($statement)) {
+        if(is_object($statement)) {
 			if(is_object($eventsManager)) {
 				$eventsManager->fire('db:afterQuery', $this);
             }

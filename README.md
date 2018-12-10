@@ -38,9 +38,8 @@ password | string | | The password attribute on the DSN string connection for th
 dbname | string | | The database attribute on the DSN string connection for the desired DB name | yes
 driver | string | | The driver attribute on the DSN string connection for the desired driver | only for OdbcSqlsrv class
 options | array | ` [\PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION, \PDO::ATTR_ORACLE_NULLS => \PDO::NULL_NATURAL, \PDO::ATTR_STRINGIFY_FETCHES => false, \PDO::SQLSRV_ATTR_FETCHES_NUMERIC_TYPE => true ];` | The optional PDO connection attributes | no
-persistent | string | false | Pass or not the attribute `\PDO::ATTR_PERSISTENT` to the PDO connection | no
 cursor | mixed (bool &#124; string) | false | Set or not a MS SQL Server cursor. If the value is true for every new statement the option `[\PDO::ATTR_CURSOR => \PDO::CURSOR_SCROLL]` will be passed. If the value is a string not only the cursor is setted to SCROLL but, the attribute `\PDO::SQLSRV_ATTR_CURSOR_SCROLL_TYPE` is also setted with option value. For `EXEC` statements the cursor option is ignored | no
-mars | boolean | false | Set or not the MultipleActiveResultSets attribute on the DSN string connection | true
+mars | boolean | false | Set or not the MultipleActiveResultSets attribute on the DSN string connection | no
 intent | string | ReadWrite | Declares the application workload type when connecting to a server. Possible values are ReadOnly and ReadWrite | no
 pooling | boolean | true | Specifies whether the connection is assigned from a connection pool | no
 useADAuth | boolean | false | Specifies to whether to use a "ActiveDirectoryPassword" | no
@@ -50,14 +49,14 @@ connectionRetryInterval | integer | 1 | The time, in seconds, between attempts t
 failover | string | | Specifies Failover Partner for the server and instance of the database's mirror (if enabled and configured) to use when the primary server is unavailable. | no
 timeout | integer | | Specifies Login Timeout for the number of seconds to wait before failing the connection attempt. | no
 trustServerCertificate | boolean | false | Specifies whether the client should trust | no
-quoteIdentifier | boolean | true | Specifies whether to use SQL-92 rules for quoted identifiers or to use legacy Transact-SQL rules. | no
+quotedIdentifier | boolean | true | Specifies whether to use SQL-92 rules for quoted identifiers or to use legacy Transact-SQL rules. | no
 trace | boolean | false | Specifies whether ODBC tracing is enabled or disabled for the connection being established. | no
 
 **Note:** All these settings are based on official MS SQL Server connection options, for more see [Microsoft docummentation page](https://docs.microsoft.com/en-us/sql/connect/php/connection-options?view=sql-server-2017).
 
 ### Note on cursors:
 
- The library have options for the MS SQL Server cursors (for more see [Microsoft documentation](https://docs.microsoft.com/en-us/sql/connect/php/cursor-types-pdo-sqlsrv-driver?view=sql-server-2017)), but be aware of the shortcomings of his utilization. First, using SCROLL cursors have significant performance impact, which can be eliminated using the buffered cursor, as discussed on this [issue](https://github.com/Microsoft/msphpsql/issues/189). The main advantage to use cursors is the avaiability off `rowCount`, since the return of number of lines only works for INSERT, UPDATE, DELETE and EXEC statements without the usage of cursors. The Phalcon framework expect that rowCount returns the number of rows for SELECT statements, despite the implementation of a custom ResultSet class (if the result is not a standard model class, a Simple or Complex ResultSet object will be used instead). To support the number of rows, for every new SELECT statement a new query like `SELECT COUNT(*) FROM (YOUR QUERY)` is made which can introduce more latency, but have much better performance in comparison to SCROLLABLE cursors (except the buffered). The usage of buffered cursor is recommended for small or medium result sets, since consumes more memory, but is faster, so if you want it use just pass the config like `[cursor => 'SQLSRV_CURSOR_BUFFERED']`.
+ This library have options for the MS SQL Server cursors (for more see [Microsoft documentation](https://docs.microsoft.com/en-us/sql/connect/php/cursor-types-pdo-sqlsrv-driver?view=sql-server-2017)), but be aware of the shortcomings of his utilization. First, using SCROLL cursors have significant performance impact, which can be eliminated by using the buffered cursor, as discussed on this [issue](https://github.com/Microsoft/msphpsql/issues/189). The main advantage to use cursors is the avaiability off `rowCount`, since the return of number of lines only works for INSERT, UPDATE, DELETE and EXEC statements without the usage of cursors. The Phalcon framework expect that rowCount returns the number of rows for SELECT statements, despite the implementation of a custom ResultSet class (if the result is not a standard model class, a Simple or Complex ResultSet object will be used instead). To support the number of rows, for every new SELECT statement a new query like `SELECT COUNT(*) FROM (YOUR QUERY)` is made which can introduce more latency, but have much better performance in comparison to SCROLLABLE cursors (except the buffered). The usage of buffered cursor is recommended for small or medium result sets, since consumes more memory, but is faster, so if you want it use just pass the config like `[cursor => 'SQLSRV_CURSOR_BUFFERED']`.
 
 ## Why the minimum SQL Server 2012?
 
