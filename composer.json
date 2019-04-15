@@ -1,6 +1,6 @@
 {
     "name": "codecrafting-net/phalcon-sqlsrv",
-    "version": "0.1.2",
+    "version": "0.1.3",
     "description": "SQL Server implementation for Phalcon Framework",
     "license": "MIT",
     "keywords": ["framework", "phalcon", "sqlsrv"],
