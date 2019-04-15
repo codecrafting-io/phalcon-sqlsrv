@@ -839,13 +839,7 @@ class Sqlsrv extends Dialect
      */
     public function tableOptions($table, $schema = null)
     {
-        $sql = 'SELECT TABLES.TABLE_TYPE AS table_type,TABLES.AUTO_INCREMENT AS auto_increment,TABLES.ENGINE AS engine,TABLES.TABLE_COLLATION AS table_collation FROM INFORMATION_SCHEMA.TABLES WHERE ';
-        if ($schema) {
-            $sql .= "TABLES.TABLE_SCHEMA = '".$schema."' AND TABLES.TABLE_NAME = '".$table."'";
-        } else {
-            $sql .= "TABLES.TABLE_NAME = '".$table."'";
-        }
-        return $sql;
+        return "";
     }
 
     /**
