@@ -1,13 +1,13 @@
 {
-    "name": "codecrafting-net/phalcon-sqlsrv",
-    "version": "0.1.3",
+    "name": "codecrafting-io/phalcon-sqlsrv",
+    "version": "0.1.4",
     "description": "SQL Server implementation for Phalcon Framework",
     "license": "MIT",
     "keywords": ["framework", "phalcon", "sqlsrv"],
     "authors": [
         {
             "name": "Lucas Marotta",
-            "email": "lucas.marotta@codecrafting.net"
+            "email": "lucas.marotta@codecrafting.io"
         },
         {
             "name": "ToNict",
@@ -15,13 +15,13 @@
         }
     ],
     "support": {
-        "issues": "https://github.com/codecrafting-net/phalcon-sqlsrv/issues",
-        "source": "https://github.com/codecrafting-net/phalcon-sqlsrv",
+        "issues": "https://github.com/codecrafting-io/phalcon-sqlsrv/issues",
+        "source": "https://github.com/codecrafting-io/phalcon-sqlsrv",
         "forum": "https://forum.phalconphp.com/",
         "docs": "https://docs.phalconphp.com/",
         "irc": "irc://irc.freenode.org/phalconphp",
         "rss": "https://blog.phalconphp.com/rss",
-        "email": "contact@codecrafting.net"
+        "email": "contact@codecrafting.io"
     },
     "require": {
         "php": ">=5.6",
